@@ -8,6 +8,7 @@
 #include "astronomy.h"
 #include "autocollimator.h"
 
+//Working
 void autocollimator::readData( std::string data[][3], int line_count )
 {
     std::ifstream planetary_data;
@@ -58,12 +59,10 @@ void autocollimator::readData( std::string data[][3], int line_count )
             autocollimator::dmsParser( dms,d,m,s );
 
             //Run calculator to convert from dms to arc seconds.
-            std::string arc_seconds = autocollimator::arcsecCalc( d, m, s );
+            int arc_seconds = autocollimator::arcsecCalc( d, m, s );
 
-            //Convert from arcseconds to radians.
-            long double microradians = autocollimator::arcsec2Rad( stoi( arc_seconds ) );
 
-            long double width = widthCalc( microradians, distance );
+            long double width = widthCalc( arc_seconds , distance );
             data[r][0] = guid_temp;
             data[r][1] = arc_seconds;
             data[r][2] = width;
@@ -73,6 +72,7 @@ void autocollimator::readData( std::string data[][3], int line_count )
     planetary_data.close();
 }
 
+//Working
 void autocollimator::writeData( std::string data[][3], int line_count ) 
 {
     using namespace autocollimator;
@@ -96,11 +96,13 @@ void autocollimator::writeData( std::string data[][3], int line_count )
     planetary_log.close();
 }
 
+//Unwritten
 void autocollimator::sortData( std::string data[][3], int line_count )
 {
     return;
 }
 
+//Working
 void autocollimator::dmsParser( std::stringstream& dms, 
                                 int& d, int& m, int& s )
 {
@@ -162,9 +164,9 @@ void autocollimator::dmsParser( std::stringstream& dms,
 }
 
 
-std::string autocollimator::arcsecCalc( int d, int m, int s )
+//Working
+int autocollimator::arcsecCalc( int d, int m, int s )
 {
-    std::string arcsec;
     //Convert degrees to minutes.
     int deg2min = d * 60; 
 
@@ -177,14 +179,11 @@ std::string autocollimator::arcsecCalc( int d, int m, int s )
     //Add running total in seconds to seconds.
     s += min2sec; 
 
-    //Convert int s to a string.
-    arcsec = std::to_string(s);
-
-
     //Return total value in seconds.
-    return arcsec;
+    return s;
 }
 
+//WIP: need to change to ratio
 long double autocollimator::arcsec2Rad( int arc_sec )
 {
     using namespace astronomy::conversions;
@@ -192,15 +191,19 @@ long double autocollimator::arcsec2Rad( int arc_sec )
     return microradians;
 }
 
+//Broken
 int autocollimator::lineCounter( std::ifstream& planetary_log )
 {
     /*ifstream data_count(  )
     {
     }*/
-    return 0;
+    return 25;
 }
 
-long double autocollimator::widthCalc( long double microrad, float distance )
+//Unwritten
+long double autocollimator::widthCalc( int arcsec, float distance )
 {
+    //Convert from arcseconds to radians.
+    long double microradians = autocollimator::arcsec2Rad( arcsec );
     return 0;
 }

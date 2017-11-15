@@ -7,9 +7,8 @@ int main()
 {
     using namespace autocollimator;
 
-    //std::ifstream temp;
-    //int line_count = lineCounter(temp);
-    int line_count = 25;
+    std::ifstream temp;
+    int line_count = lineCounter(temp);
 
     std::string data[line_count][3];
 
