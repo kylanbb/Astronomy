@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 
+//Currently this is just a decimal conversion factor, will be updated to use ratios.
 namespace astronomy
 {
     namespace conversions

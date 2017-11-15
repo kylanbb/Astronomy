@@ -8,9 +8,10 @@
 #include "astronomy.h"
 #include "autocollimator.h"
 
-//Working
+//reads the data and runs conversions, storing in the multidimensional array.
 void autocollimator::readData( std::string data[][3], int line_count )
 {
+    //open filestream and check for failure. Will be moved.
     std::ifstream planetary_data;
     planetary_data.open( autocollimator::INPUTDATA );
     if( !planetary_data.is_open() )
@@ -18,7 +19,10 @@ void autocollimator::readData( std::string data[][3], int line_count )
         std::cout << "Unable to open one of the files. input" << std::endl;
     }
 
+    //Define a counter for the rows of the array.
     int r = 0;
+
+    // Start a do while loop to parse through the file loading info into the array.
     do
     {
         std::string temp;
@@ -86,8 +90,8 @@ void autocollimator::writeData( std::string data[][3], int line_count )
     for( int r = 0; r < line_count; r++ )
     {
         planetary_log << "guid:" << data[r][0] << " " 
-                      << "microradians:" << std::setw(16) << std::setprecision(15) 
-                      << arcsec2Rad(stoi(data[r][1])) << " " 
+                     // << "microradians:" << std::setw(16) << std::setprecision(15) 
+                     // << arcsec2Rad(stoi(data[r][1])) << " " 
                       << "arcseconds:" << std::setw(5) << data[r][1] << " "
                       << "width:" << std::setw(10) << std::setprecision(10) << data[r][2]
                       << std::endl;
