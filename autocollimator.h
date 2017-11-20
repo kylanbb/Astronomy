@@ -11,17 +11,23 @@ namespace autocollimator
     const std::string OUTPUTDATA = "planetary.log";
 
     //Functions
-    int lineCounter( std::ifstream& planetary_log );
-    void readData( std::string data[][3], int length1 ); 
+    int lineCounter();
+    void readData(); 
     int arcsecCalc( int d, int m, int s );
-    long double arcsec2Rad( int arc_sec);
-    long double widthCalc( int arcsec, float distace );
+    float arcsec2Rad( int arc_sec);
+    float widthCalc( int arcsec, float distace );
     void dmsParser( 
                       std::stringstream& dms, 
                       int& d, int& m, int& s 
                   );
-    void sortData( std::string data[][3], int length1 );
-    void writeData( std::string data[][3], int length1 );
+    void sortData();
+    void writeData();
+
+    std::string* createStringArray();
+    int* createIntArray();
+    float* createFloatArray();
+
+    void clearData();
 }
 
 #endif //End include guard started on line 1.

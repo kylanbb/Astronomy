@@ -8,21 +8,31 @@
 #include "astronomy.h"
 #include "autocollimator.h"
 
+std::string* guid;
+int* arcseconds;
+float* width;
+
 //reads the data and runs conversions, storing in the multidimensional array.
-void autocollimator::readData( std::string data[][3], int line_count )
+void autocollimator::readData()
 {
+    //Declare arrays to hold my information. Will be moved out of main.
+    guid = autocollimator::createStringArray();
+    arcseconds = autocollimator::createIntArray();
+    width = autocollimator::createFloatArray();
+
     //open filestream and check for failure. Will be moved.
     std::ifstream planetary_data;
     planetary_data.open( autocollimator::INPUTDATA );
     if( !planetary_data.is_open() )
     {
         std::cout << "Unable to open one of the files. input" << std::endl;
+        std::exit( EXIT_FAILURE );
     }
 
-    //Define a counter for the rows of the array.
+    //Define a counter for the rows of the arrays.
     int r = 0;
 
-    // Start a do while loop to parse through the file loading info into the array.
+    // Start a do while loop to parse through the file loading info into the arrays.
     do
     {
         std::string temp;
@@ -43,8 +53,9 @@ void autocollimator::readData( std::string data[][3], int line_count )
             //field.
             getline( tempstream, dms_temp, ',' );
 
-            //Take first line after second comma and until the end of the line and 
-            //store in distance field.
+            //Take first line after second comma and until the end of the line 
+            //and store in distance field. Use ' ' as a delimitor to drop the au
+            //at the end of the lines.
             getline( tempstream, distance_temp, ' ' );
 
             //Trash the rest of the line (from file specs "au".
@@ -66,10 +77,11 @@ void autocollimator::readData( std::string data[][3], int line_count )
             int arc_seconds = autocollimator::arcsecCalc( d, m, s );
 
 
-            long double width = widthCalc( arc_seconds , distance );
-            data[r][0] = guid_temp;
-            data[r][1] = arc_seconds;
-            data[r][2] = width;
+            long double width_temp = widthCalc( arc_seconds , distance );
+
+            guid[r] = guid_temp;
+            arcseconds[r] = arc_seconds;
+            width[r] = width_temp;
         }
         r++;
     }while( !planetary_data.eof() );
@@ -77,7 +89,7 @@ void autocollimator::readData( std::string data[][3], int line_count )
 }
 
 //Working
-void autocollimator::writeData( std::string data[][3], int line_count ) 
+void autocollimator::writeData() 
 {
     using namespace autocollimator;
     std::ofstream planetary_log( autocollimator::OUTPUTDATA );
@@ -87,13 +99,13 @@ void autocollimator::writeData( std::string data[][3], int line_count )
         std::cout << "The file was unable to open. output" << std::endl;
     }
 
-    for( int r = 0; r < line_count; r++ )
+    for( int r = 0; r < autocollimator::lineCounter(); r++ )
     {
-        planetary_log << "guid:" << data[r][0] << " " 
+        planetary_log << "guid:" << guid[r] << " " 
                      // << "microradians:" << std::setw(16) << std::setprecision(15) 
                      // << arcsec2Rad(stoi(data[r][1])) << " " 
-                      << "arcseconds:" << std::setw(5) << data[r][1] << " "
-                      << "width:" << std::setw(10) << std::setprecision(10) << data[r][2]
+                      << "arcseconds:" << std::setw(5) << arcseconds[r] << " "
+                      << "width:" << std::setw(10) << std::setprecision(10) << width[r]
                       << std::endl;
     }
 
@@ -101,8 +113,21 @@ void autocollimator::writeData( std::string data[][3], int line_count )
 }
 
 //Unwritten
-void autocollimator::sortData( std::string data[][3], int line_count )
+void autocollimator::sortData()
 {
+    for( int r = 0; r < autocollimator::lineCounter(); r++ )
+    {
+        std::cout << r << std::endl;
+        for( int i = 0; i < ( autocollimator::lineCounter() - r - 1 ); i++ )
+        {
+            std::cout << i << std::endl;
+            if( width[i] > width[i+1] )
+            {
+                std::swap( guid[i], guid[i+1] );
+                std::swap( arcseconds[i], arcseconds[i+1] );
+            }
+        }
+    }
     return;
 }
 
@@ -129,6 +154,7 @@ void autocollimator::dmsParser( std::stringstream& dms,
     //the degrees string.
     for( int i = 0; i < 3; i++ )
     {
+        std::cout << i << std::endl;
         degrees += dms.get();
     }
 
@@ -136,6 +162,7 @@ void autocollimator::dmsParser( std::stringstream& dms,
     //totals the  degree symbol) on each line into the trash.
     for( int i = 0; i < 2; i++)
     {
+        std::cout << i << std::endl;
         trash = dms.get();
     }
 
@@ -188,26 +215,108 @@ int autocollimator::arcsecCalc( int d, int m, int s )
 }
 
 //WIP: need to change to ratio
-long double autocollimator::arcsec2Rad( int arc_sec )
+float autocollimator::arcsec2Rad( int arc_sec )
 {
     using namespace astronomy::conversions;
-    long double microradians = arc_sec * arcsec2microrad;
+    float microradians = arc_sec * arcsec2microrad;
     return microradians;
 }
 
-//Broken
-int autocollimator::lineCounter( std::ifstream& planetary_log )
+int autocollimator::lineCounter()
 {
-    /*ifstream data_count(  )
+    std::ifstream data_input( autocollimator::INPUTDATA );
+    int line_count = 0;
+
+    if( data_input.is_open() )
     {
-    }*/
-    return 25;
+        std::string line;
+
+        do
+        {
+            if( getline( data_input, line ) && line.length() > 0 )
+            {
+                line_count++;
+            }
+        } while( !data_input.eof() );
+        data_input.close();
+    }
+    else
+    {
+        exit(EXIT_FAILURE);
+    }
+    return line_count;
 }
 
-//Unwritten
-long double autocollimator::widthCalc( int arcsec, float distance )
+float autocollimator::widthCalc( int arcsec, float distance )
 {
     //Convert from arcseconds to radians.
-    long double microradians = autocollimator::arcsec2Rad( arcsec );
-    return 0;
+    float microradians = autocollimator::arcsec2Rad( arcsec );
+    float radians = microradians / astronomy::conversions::micro2norm;
+
+    float au_width;
+    float km_width;
+
+    au_width = ((2.0 * distance) * (std::tan(radians/2.0)));
+
+    km_width = (au_width * 149597871.0);
+    return km_width;
 }
+
+std::string* autocollimator::createStringArray()
+{
+    int length = autocollimator::lineCounter();
+    std::string* newArray = new std::string[length];
+    return newArray;
+}
+
+int* autocollimator::createIntArray()
+{
+    int length = autocollimator::lineCounter();
+    int* newArray = new int[length];
+    return newArray;
+}
+
+float* autocollimator::createFloatArray()
+{
+    int length = autocollimator::lineCounter();
+    float* newArray = new float(length);
+    return newArray;
+}
+
+
+
+void autocollimator::clearData()
+{
+    delete guid;
+    guid = nullptr;
+
+    delete arcseconds;
+    arcseconds = nullptr;
+
+    delete width;
+    width = nullptr;
+}
+
+
+
+/*
+string* creatFinalArray( some number of streams)
+{
+    string[argc-1] shortArrays[argc-1] = {0}
+    
+    for(int i=0; i<argc-1; i++)
+    {
+        shortArrays[i] = 
+    string* file3Array = autocollimator::createArray(autocollimator::lineCounter(stream3));
+
+    string* finalArray = autocollimator::createArray( autocollimator::lineCounter(stream1) + autocollimator::lineCounter(stream2) + autocollimator::lineCounter(stream3) );
+    
+    r = 0;
+    copyArray(r,file1Array, finalArray);
+    copyArray(r,file2Array, finalArray);
+    copyArray(r,file3Array, finalArray);
+}
+
+for(i=0;i<argc-1;i++)
+{
+    std::ifstream file */
